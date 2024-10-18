@@ -11,15 +11,20 @@ if 'command_history' not in st.session_state:
 
 # Function to display the command history as paragraphs
 def display_command_history():
-    for entry in st.session_state.command_history:
-        st.markdown(f"**$ {entry['command']}**")
-        st.markdown(f"{entry['output']}")
+    history_container = st.container()
+    with history_container:
+        for entry in st.session_state.command_history:
+            st.markdown(f"**$ {entry['command']}**")
+            st.markdown(f"{entry['output']}")
+        st.markdown("---")  # Separator to indicate history end
 
-# Display the current command history (scrollable)
-display_command_history()
+# Container for the output (scrollable)
+output_placeholder = st.empty()
+with output_placeholder:
+    display_command_history()
 
 # Input field for user to enter a command, fixed at the bottom
-command = st.text_input("Enter a command:", key="input_box")
+command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="input_box")
 
 # If a command is entered
 if command:
@@ -46,18 +51,10 @@ if command:
     except Exception as e:
         st.session_state.command_history.append({'command': command, 'output': f"An error occurred: {e}"})
 
-    # Reset the command input field after each submission
+    # Clear input after submission
     st.experimental_rerun()
 
-# Fix the input field at the bottom with some custom CSS
-st.markdown(
-    """
-    <style>
-    .stTextInput {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
+# Always keep the input box visible by positioning it at the bottom
+input_placeholder = st.empty()
+with input_placeholder:
+    command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="input_box_fixed")
