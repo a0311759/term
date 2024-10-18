@@ -16,7 +16,7 @@ if 'command' not in st.session_state:
 st.write(f"**Current Directory**: {st.session_state.current_dir}")
 
 # Input field for user to enter a command
-command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", value=st.session_state.command, key="command_input")
+command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="command_input", value="")
 
 # If a command is entered
 if command:
@@ -52,5 +52,5 @@ if command:
 # Display the output history in paragraphs
 st.write(st.session_state.output_history)
 
-# Reset the input field after a command is entered
-st.experimental_rerun()
+# Clear the input field by resetting its value
+st.session_state.command = ""  # Reset the command input field
