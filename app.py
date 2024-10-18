@@ -10,7 +10,6 @@ if 'output_history' not in st.session_state:
     st.session_state.output_history = ""
 
 # Display the current directory
-st.write(f"**Current Directory**: {st.session_state.current_dir}")
 
 # Input field for user to enter a command
 command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):")
