@@ -2,29 +2,15 @@ import streamlit as st
 import subprocess
 import os
 
-# Initialize session state to keep track of command history and current directory
+# Initialize session state for storing the current working directory
 if 'current_dir' not in st.session_state:
     st.session_state.current_dir = os.getcwd()
 
-if 'command_history' not in st.session_state:
-    st.session_state.command_history = []
+# Display the current directory
+st.write(f"**Current Directory**: {st.session_state.current_dir}")
 
-# Function to display the command history as paragraphs
-def display_command_history():
-    history_container = st.container()
-    with history_container:
-        for entry in st.session_state.command_history:
-            st.markdown(f"**$ {entry['command']}**")
-            st.markdown(f"{entry['output']}")
-        st.markdown("---")  # Separator to indicate history end
-
-# Container for the output (scrollable)
-output_placeholder = st.empty()
-with output_placeholder:
-    display_command_history()
-
-# Input field for user to enter a command, fixed at the bottom
-command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="input_box")
+# Input field for user to enter a command
+command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):")
 
 # If a command is entered
 if command:
@@ -37,24 +23,16 @@ if command:
             new_dir = command_parts[1] if len(command_parts) > 1 else os.path.expanduser("~")
             os.chdir(new_dir)
             st.session_state.current_dir = os.getcwd()
-            output = f"Changed directory to: {st.session_state.current_dir}"
+            st.write(f"Changed directory to: {st.session_state.current_dir}")
         else:
             # Execute the command using subprocess in the current directory
             result = subprocess.run(command, shell=True, cwd=st.session_state.current_dir, capture_output=True, text=True)
             
-            # Capture the command output
-            output = result.stdout if result.stdout else result.stderr if result.stderr else "Command executed with no output"
-
-        # Append the command and output to the command history
-        st.session_state.command_history.append({'command': command, 'output': output})
+            # Display the result
+            if result.stdout:
+                st.text_area("Output:", result.stdout, height=300)
+            if result.stderr:
+                st.text_area("Error:", result.stderr, height=300)
 
     except Exception as e:
-        st.session_state.command_history.append({'command': command, 'output': f"An error occurred: {e}"})
-
-    # Clear input after submission
-    st.experimental_rerun()
-
-# Always keep the input box visible by positioning it at the bottom
-input_placeholder = st.empty()
-with input_placeholder:
-    command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="input_box_fixed")
+        st.error(f"An error occurred: {e}")
