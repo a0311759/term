@@ -2,9 +2,12 @@ import streamlit as st
 import subprocess
 import os
 
-# Initialize session state for storing the current working directory
+# Initialize session state for storing the current working directory and output history
 if 'current_dir' not in st.session_state:
     st.session_state.current_dir = os.getcwd()
+
+if 'output_history' not in st.session_state:
+    st.session_state.output_history = ""
 
 # Display the current directory
 st.write(f"**Current Directory**: {st.session_state.current_dir}")
@@ -23,16 +26,19 @@ if command:
             new_dir = command_parts[1] if len(command_parts) > 1 else os.path.expanduser("~")
             os.chdir(new_dir)
             st.session_state.current_dir = os.getcwd()
-            st.write(f"Changed directory to: {st.session_state.current_dir}")
+            st.session_state.output_history += f"\nChanged directory to: {st.session_state.current_dir}\n"
         else:
             # Execute the command using subprocess in the current directory
             result = subprocess.run(command, shell=True, cwd=st.session_state.current_dir, capture_output=True, text=True)
             
-            # Display the result
+            # Append the result to output history
             if result.stdout:
-                st.text_area("Output:", result.stdout, height=300)
+                st.session_state.output_history += f"\n{result.stdout}\n"
             if result.stderr:
-                st.text_area("Error:", result.stderr, height=300)
+                st.session_state.output_history += f"\nError: {result.stderr}\n"
 
     except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.session_state.output_history += f"\nAn error occurred: {e}\n"
+
+# Display the output history in paragraphs
+st.write(st.session_state.output_history)
