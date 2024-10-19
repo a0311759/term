@@ -1,5 +1,5 @@
 import streamlit as st
-import pexpect
+import subprocess
 import os
 
 # Initialize session state for storing the current working directory, output history, and command
@@ -11,6 +11,7 @@ if 'output_history' not in st.session_state:
 
 if 'command' not in st.session_state:
     st.session_state.command = ""
+
 
 # Input field for user to enter a command
 command = st.text_input("Enter a command (e.g., ls, cd, mkdir, etc.):", key="command_input", value="")
@@ -31,16 +32,14 @@ if command:
             st.session_state.current_dir = os.getcwd()
             st.session_state.output_history += f"\nChanged directory to: {st.session_state.current_dir}\n"
         else:
-            # Execute the command using pexpect
-            child = pexpect.spawn(command, cwd=st.session_state.current_dir, encoding='utf-8', timeout=10)
-            child.expect(pexpect.EOF)
-            output = child.before
+            # Execute the command using subprocess in the current directory
+            result = subprocess.run(command, shell=True, cwd=st.session_state.current_dir, capture_output=True, text=True)
             
             # Append the result to output history
-            if output:
-                st.session_state.output_history += f"\n{output}\n"
-            else:
-                st.session_state.output_history += "\nNo output received.\n"
+            if result.stdout:
+                st.session_state.output_history += f"\n{result.stdout}\n"
+            if result.stderr:
+                st.session_state.output_history += f"\nError: {result.stderr}\n"
 
         # Clear the command input field after hitting Enter
         st.session_state.command = ""
